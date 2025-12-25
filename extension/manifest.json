@@ -1,0 +1,10 @@
+{
+    "manifest_version": 3,
+    "name": "Job Application Copilot",
+    "version": "1.0",
+    "description": "A Chrome extension that matches your CV to Job Descriptions",
+    "action": {
+        "default_popup": "popup.html"
+  },
+  "permissions": ["activeTab"]
+}
