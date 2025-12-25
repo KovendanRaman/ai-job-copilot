@@ -1,8 +1,16 @@
 document.getElementById("scrapeBtn").addEventListener("click", async () => {
     const statusDiv = document.getElementById("status");
+    const cvFileInput = document.getElementById("cvFile");
+    
     statusDiv.textContent = "Analyzing...";
   
-    // 1. Get the active tab
+    // 1. Check if CV file is selected
+    if (!cvFileInput.files || cvFileInput.files.length === 0) {
+      statusDiv.textContent = "Error: Please select a PDF file first.";
+      return;
+    }
+  
+    // 2. Get the active tab
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   
     if (!tab) {
@@ -10,7 +18,7 @@ document.getElementById("scrapeBtn").addEventListener("click", async () => {
       return;
     }
   
-    // 2. Send a message to the content script to scrape text
+    // 3. Send a message to the content script to scrape text
     try {
       const response = await chrome.tabs.sendMessage(tab.id, { action: "scrape_page" });
       
@@ -18,30 +26,33 @@ document.getElementById("scrapeBtn").addEventListener("click", async () => {
         statusDiv.textContent = "Scraped! Sending to Python...";
         console.log("Scraped Text Length:", response.text.length);
         
-        // 3. Send the scraped text to the FastAPI Backend
+        // 4. Create FormData and append file and job text
+        const formData = new FormData();
+        formData.append("file", cvFileInput.files[0]);
+        formData.append("job_text", response.text);
+        
+        // 5. Send FormData to the FastAPI Backend
         try {
           const apiResponse = await fetch("http://127.0.0.1:8000/analyze", {
               method: "POST",
-              headers: {
-                  "Content-Type": "application/json"
-              },
-              body: JSON.stringify({ text: response.text })
+              body: formData
+              // Note: Don't set Content-Type header - browser sets it automatically with boundary for FormData
           });
-  
+
           if (!apiResponse.ok) {
               throw new Error(`Server error: ${apiResponse.status}`);
           }
-  
+
           const data = await apiResponse.json();
           
-          // 4. Update UI with the response from Python
-          statusDiv.textContent = `Python says: ${data.message} (${data.char_count} chars)`;
+          // 6. Update UI with the response from Python
+          statusDiv.textContent = data.message || `CV text: ${data.cv_text_length} chars, Job text: ${data.job_text_length} chars`;
           
         } catch (err) {
           statusDiv.textContent = "Error connecting to Python backend.";
           console.error("Fetch Error:", err);
         }
-  
+
       } else {
         statusDiv.textContent = "Error: could not scrape page.";
       }

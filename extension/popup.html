@@ -1,6 +1,17 @@
 <body>
-    <h3>Job Copilot</h3>
-    <button id="scrapeBtn">Analyze Job Description</button>
-    <div id="status"></div>
+    <div style="width: 300px; padding: 10px; font-family: sans-serif;">
+      <h3>AI Job Copilot</h3>
+      
+      <div style="margin-bottom: 10px;">
+          <label>1. Upload CV (PDF):</label>
+          <input type="file" id="cvFile" accept=".pdf" style="width: 100%; margin-top: 5px;">
+      </div>
+  
+      <button id="scrapeBtn" style="width: 100%; padding: 8px; cursor: pointer;">
+          2. Analyze Match
+      </button>
+  
+      <div id="status" style="margin-top: 15px; font-size: 13px;"></div>
+    </div>
     <script src="popup.js"></script>
   </body>
